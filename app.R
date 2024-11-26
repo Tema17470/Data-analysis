@@ -35,6 +35,20 @@ cumulativeDeaths <- data %>%
     .groups = "drop"
   )
 
+# Summarize data for total cumulative cases globally
+cumulativeCases <- data %>%
+  group_by(date) %>%
+  summarize(
+    total_new_cases = sum(daily_new_cases, na.rm = TRUE),
+    .groups = "drop"
+  )
+cumulativeDeaths <- data %>%
+  group_by(date) %>%
+  summarize(
+    total_new_deaths = sum(daily_new_deaths, na.rm = TRUE),
+    .groups = "drop"
+  )
+
 # Summarize data for total cases by country
 totalCasesByCountry <- data %>%
   group_by(country) %>%
@@ -138,25 +152,30 @@ server <- function(input, output, session) {
       list(
         casesData = cumulativeCases,
         deathsData = cumulativeDeaths,
-        total_data = "total_cases",  # Use the column name as a string
-        title_text = "Cumulative Positive Cases \nSelect a country to see details"
+        cases = "total_cumulative_cases",  # Use the column name as a string
+        deaths = "total_cumulative_deaths",
+        title_case = "Cumulative Cases",
+        title_death = "Cumulative Deaths"
       )
     } else {
       list(
-        casesData = newCases,
-        deathsData = newDeaths,
-        total_data = "total_deaths",  # Use the column name as a string
-        title_text = "Cumulative Deaths \nSelect a country to see details"
+        casesData = latestData,
+        deathsData = latestData,
+        cases = "daily_new_cases",  # Use the column name as a string
+        deaths = "daily_new_deaths",
+        title_case = "New Cases",
+        title_death = "New Deaths"
       )
     }
   })
-  # Left-side bar plot for cumulative cases
+  # Left-side bar plot for cumulative/new cases
   output$histogramPlot <- renderPlot({
+    typeData <- selectedType()
     if (is.null(selectedCountry())) {
-      ggplot(casesData, aes(x = date, y = total_cumulative_cases)) +
+      ggplot(typeData$casesData, aes(x = date, y = typeData$total_cases)) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = "Cumulative Cases Globally",
+          title = paste(typeData$title_case, " Globally"),
           x = NULL, y = NULL
         ) +
         theme_minimal() +
@@ -165,10 +184,10 @@ server <- function(input, output, session) {
     } else {
       countryData <- data %>% filter(country == selectedCountry())
       
-      ggplot(countryData, aes(x = date, y = cumulative_total_cases)) +
+      ggplot(countryData, aes(x = date, y = typeData$total_cases)) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = paste("Cumulative Cases in", selectedCountry()),
+          title = paste(typeData$title_case, " in ", selectedCountry()),
           x = NULL, y = NULL
         ) +
         theme_minimal() +
@@ -177,7 +196,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Second plot for cumulative deaths
+  # Second plot for cumulative/new deaths
   output$deathsPlot <- renderPlot({
     if (is.null(selectedCountry())) {
       ggplot(cumulativeDeaths, aes(x = date, y = total_cumulative_deaths)) +

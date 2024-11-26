@@ -19,7 +19,8 @@ coordinates <- read_csv("country_coordinates.csv") %>%
 data$date <- as.Date(data$date, format = "%Y-%m-%d")
 
 data <- data %>%
-  mutate(across(everything(), ~ ifelse(is.na(.) | . < 0, 0, .)))
+  mutate(across(c(daily_new_cases, cumulative_total_cases, daily_new_deaths, cumulative_total_deaths),
+                ~ ifelse(is.na(.) | . < 0, 0, .)))
 
 # Summarize data for total cumulative cases globally
 cumulativeCases <- data %>%
@@ -35,14 +36,14 @@ cumulativeDeaths <- data %>%
     .groups = "drop"
   )
 
-# Summarize data for total cumulative cases globally
-cumulativeCases <- data %>%
+# Summarize data for total new cases globally
+newCases <- data %>%
   group_by(date) %>%
   summarize(
     total_new_cases = sum(daily_new_cases, na.rm = TRUE),
     .groups = "drop"
   )
-cumulativeDeaths <- data %>%
+newDeaths <- data %>%
   group_by(date) %>%
   summarize(
     total_new_deaths = sum(daily_new_deaths, na.rm = TRUE),
@@ -154,15 +155,19 @@ server <- function(input, output, session) {
         deathsData = cumulativeDeaths,
         cases = "total_cumulative_cases",  # Use the column name as a string
         deaths = "total_cumulative_deaths",
+        cases_by_country = "cumulative_total_cases",
+        deaths_by_country = "cumulative_total_deaths",
         title_case = "Cumulative Cases",
         title_death = "Cumulative Deaths"
       )
     } else {
       list(
-        casesData = latestData,
-        deathsData = latestData,
-        cases = "daily_new_cases",  # Use the column name as a string
-        deaths = "daily_new_deaths",
+        casesData = newCases,
+        deathsData = newDeaths,
+        cases = "total_new_cases",  # Use the column name as a string
+        deaths = "total_new_deaths",
+        cases_by_country = "daily_new_cases",
+        deaths_by_country = "daily_new_deaths",
         title_case = "New Cases",
         title_death = "New Deaths"
       )
@@ -172,10 +177,10 @@ server <- function(input, output, session) {
   output$histogramPlot <- renderPlot({
     typeData <- selectedType()
     if (is.null(selectedCountry())) {
-      ggplot(typeData$casesData, aes(x = date, y = typeData$total_cases)) +
+      ggplot(typeData$casesData, aes(x = date, y = .data[[typeData$cases]])) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = paste(typeData$title_case, " Globally"),
+          title = paste(typeData$title_case, "Globally"),
           x = NULL, y = NULL
         ) +
         theme_minimal() +
@@ -184,10 +189,10 @@ server <- function(input, output, session) {
     } else {
       countryData <- data %>% filter(country == selectedCountry())
       
-      ggplot(countryData, aes(x = date, y = typeData$total_cases)) +
+      ggplot(countryData, aes(x = date, y = .data[[typeData$cases_by_country]])) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = paste(typeData$title_case, " in ", selectedCountry()),
+          title = paste(typeData$title_case, "in", selectedCountry()),
           x = NULL, y = NULL
         ) +
         theme_minimal() +
@@ -198,11 +203,12 @@ server <- function(input, output, session) {
   
   # Second plot for cumulative/new deaths
   output$deathsPlot <- renderPlot({
+    typeData <- selectedType()
     if (is.null(selectedCountry())) {
-      ggplot(cumulativeDeaths, aes(x = date, y = total_cumulative_deaths)) +
+      ggplot(typeData$deathsData, aes(x = date, y = .data[[typeData$deaths]])) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = "Cumulative Deaths Globally",
+          title = paste(typeData$title_death, "Globally"),
           x = NULL, y = NULL
         ) +
         theme_minimal() +
@@ -211,10 +217,10 @@ server <- function(input, output, session) {
     } else {
       countryData <- data %>% filter(country == selectedCountry())
       
-      ggplot(countryData, aes(x = date, y = cumulative_total_deaths)) +
+      ggplot(countryData, aes(x = date, y = .data[[typeData$deaths_by_country]])) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
-          title = paste("Cumulative Deaths in", selectedCountry()),
+          title = paste(typeData$title_death, "in", selectedCountry()),
           x = NULL, y = NULL
         ) +
         theme_minimal() +

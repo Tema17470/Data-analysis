@@ -1,0 +1,49 @@
+Antigua And Barbuda	17.0608	-61.7964
+Bosnia And Herzegovina	43.9159	17.6791
+British Virgin Islands	18.4207	-64.6399
+Brunei Darussalam	4.5353	114.7277
+Caribbean Netherlands	12.2019	-68.2624
+Cayman Islands	19.3133	-81.2546
+Central African Republic	6.6111	20.9394
+Channel Islands	49.3723	-2.3644
+China Hong Kong Sar	22.3193	114.1694
+China Macao Sar	22.1987	113.5439
+Cook Islands	-21.2367	-159.7777
+Cote D'Ivoire	7.539989	-5.5471
+Curacao	12.1696	-68.9900
+Czech Republic	49.8175	15.4730
+Democratic Republic Of The Congo	-4.0383	21.7587
+Dominican Republic	18.7357	-70.1627
+Equatorial Guinea	1.6508	10.2679
+Faeroe Islands	61.8926	-6.9118
+Falkland Islands Malvinas	-51.7963	-59.5236
+French Guiana	3.9339	-53.1258
+French Polynesia	-17.6797	-149.4068
+Gibraltar	36.1408	-5.3536
+Guadeloupe	16.2650	-61.5510
+Guinea Bissau	11.8037	-15.1804
+Holy See	41.9029	12.4534
+Isle Of Man	54.2361	-4.5481
+Macedonia (North Macedonia)	41.6086	21.7453
+Marshall Islands	7.1315	171.1845
+Martinique	14.6415	-61.0242
+Mayotte	-12.8275	45.1662
+Reunion	-21.1151	55.5364
+Saint Barthelemy	17.8962	-62.8498
+Saint Kitts And Nevis	17.3578	-62.7830
+Saint Martin	18.0708	-63.0501
+Saint Pierre And Miquelon	46.8852	-56.3159
+Saint Vincent And The Grenadines	12.9843	-61.2872
+Sao Tome And Principe	0.1864	6.6131
+Solomon Islands	-9.6457	160.1562
+South Sudan	6.8770	31.3070
+State Of Palestine	31.9522	35.2332
+Swaziland (Eswatini)	-26.5225	31.4659
+Timor Leste	-8.8742	125.7275
+Trinidad And Tobago	10.6918	-61.2225
+Turks And Caicos Islands	21.6940	-71.7979
+UK (United Kingdom)	55.3781	-3.4360
+USA (United States)	37.0902	-95.7129
+Viet Nam (Vietnam)	14.0583	108.2772
+Wallis And Futuna Islands	-13.7688	-177.1561
+Western Sahara	24.2155	-12.8858

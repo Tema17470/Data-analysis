@@ -18,8 +18,8 @@ coordinates <- read_csv("country_coordinates.csv") %>%
 # Preprocess data
 data$date <- as.Date(data$date, format = "%Y-%m-%d")
 
-#data <- data %>%
-  #mutate(across(everything(), ~ ifelse(is.na(.), 0, .)))
+data <- data %>%
+  mutate(across(everything(), ~ ifelse(is.na(.) | . < 0, 0, .)))
 
 # Summarize data for total cumulative cases globally
 cumulativeCases <- data %>%
@@ -66,10 +66,12 @@ latestData <- data %>%
   group_by(country) %>%
   filter(date == max(date)) %>%
   summarize(
+    cumulative_deaths = max(cumulative_total_deaths, na.rm = TRUE),
     cumulative_cases = max(cumulative_total_cases, na.rm = TRUE),
     daily_cases = max(daily_new_cases, na.rm = TRUE),
     .groups = "drop"
   )
+
 
 # Merge latest data with coordinates
 latestData <- latestData %>%
@@ -130,21 +132,6 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Reactive value for selected country
   selectedCountry <- reactiveVal(NULL)
-  
-  # Reactive value for selected metric
-  selectedMetric <- reactive({
-    if (input$metric == "cases") {
-      list(
-        column = "cumulative_cases",  # For map
-        barPlotColumn = "total_cases" # For right graph
-      )
-    } else {
-      list(
-        column = "cumulative_deaths", # For map
-        barPlotColumn = "total_deaths" # For right graph
-      )
-    }
-  })
   
   # Left-side bar plot for cumulative cases
   output$histogramPlot <- renderPlot({
@@ -213,7 +200,11 @@ server <- function(input, output, session) {
       addCircleMarkers(
         lng = ~Longitude,
         lat = ~Latitude,
-        radius = ~sqrt(cumulative_cases) / 500,
+        (if(input$metric == "cases"){
+          radius = ~sqrt(cumulative_cases)/500
+        } else{
+          radius = ~sqrt(cumulative_deaths)/150
+        }), 
         color = "#00B7F2",
         fillOpacity = 0.6,
         label = ~country,
@@ -226,18 +217,34 @@ server <- function(input, output, session) {
       )
   })
 
-  
+  # Reactive value for selected metric
+  selectedMetric <- reactive({
+    if (input$metric == "cases") {
+      list(
+        totalDataByCountry = totalCasesByCountry,
+        total_data = "total_cases",  # Use the column name as a string
+        title_text = "Cumulative Positive Cases \nSelect a country to see details"
+      )
+    } else {
+      list(
+        totalDataByCountry = totalDeathsByCountry,
+        total_data = "total_deaths",  # Use the column name as a string
+        title_text = "Cumulative Deaths \nSelect a country to see details"
+      )
+    }
+  })
   
   # Bar plot for total cases by country (interactive using plotly)
   output$interactiveBarPlot <- renderPlotly({
+    metricData <- selectedMetric()
     plot_ly(
-      totalCasesByCountry,
-      x = ~total_cases,
-      y = ~reorder(truncated_country, total_cases),
+      data = metricData$totalDataByCountry,
+      x = ~get(metricData$total_data),
+      y = ~reorder(truncated_country, get(metricData$total_data)),
       type = 'bar',
       orientation = 'h',
       marker = list(color = '#00B7F2'),
-      hoverinfo = ~paste('Country:', truncated_country, '<br>Total Cases:', total_cases),
+      hoverinfo = ~paste('Country:', truncated_country, '<br>Total Cases:', get(metricData$total_data)),
       source = 'barplot',
       hoverlabel = list(
         bgcolor = 'white',          # Background color of the label
@@ -249,7 +256,7 @@ server <- function(input, output, session) {
       )
     ) %>%
       layout(
-        title = "Cumulative Positive Cases \nseclect a country to see details",
+        title = metricData$title_text,
         xaxis = list(title = ""),
         yaxis = list(title = ""),
         margin = list(r = 5, t = 70, l = 120)  # Adjust margin for long country names

@@ -132,11 +132,28 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Reactive value for selected country
   selectedCountry <- reactiveVal(NULL)
-  
+  # Reactive value for selected metric used in left plots
+  selectedType <- reactive({
+    if (input$dataType == "cumulative") {
+      list(
+        casesData = cumulativeCases,
+        deathsData = cumulativeDeaths,
+        total_data = "total_cases",  # Use the column name as a string
+        title_text = "Cumulative Positive Cases \nSelect a country to see details"
+      )
+    } else {
+      list(
+        casesData = newCases,
+        deathsData = newDeaths,
+        total_data = "total_deaths",  # Use the column name as a string
+        title_text = "Cumulative Deaths \nSelect a country to see details"
+      )
+    }
+  })
   # Left-side bar plot for cumulative cases
   output$histogramPlot <- renderPlot({
     if (is.null(selectedCountry())) {
-      ggplot(cumulativeCases, aes(x = date, y = total_cumulative_cases)) +
+      ggplot(casesData, aes(x = date, y = total_cumulative_cases)) +
         geom_bar(stat = "identity", fill = "#00B7F2", alpha = 0.7) +
         labs(
           title = "Cumulative Cases Globally",
@@ -217,7 +234,7 @@ server <- function(input, output, session) {
       )
   })
 
-  # Reactive value for selected metric
+  # Reactive value for selected metric used in right bar plot
   selectedMetric <- reactive({
     if (input$metric == "cases") {
       list(
